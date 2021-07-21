@@ -1,6 +1,7 @@
 import logging
-from dm import DialogManager, Intent
-from nlu import NLU
+from libs.dialog import DialogManager
+from libs.intent import Intent
+from libs.nlu import NLU
 
 
 class Chatbot(object):
