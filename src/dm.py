@@ -19,17 +19,8 @@ class Slot(object):
         self.name = name
         self.prompt = prompt
         self.slot_type = slot_type
-        self._value = None
 
-    def is_completed(self):
-        return bool(self.value)
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, v):
+    def is_valid(self, v):
         if v not in self.slot_type.values:
             raise InvalidSlotValue()
         self._value = v
@@ -43,15 +34,21 @@ class Intent(object):
         self.slots = slots
         self.tokens = tokens
 
-    def next_prompt(self, text: str):
+    def next_prompt(self, user_slot_value, text: str):
+        is_fulfilled = False
+        slot_value = user_slot_value.copy()
         for slot in self.slots:
-            if not slot.is_completed():
+            if slot.name not in slot_value:
+                logging.info(f'{slot_value}, {text}')
                 try:
-                    slot.value = text
+                    slot.is_valid(text)
+                    slot_value.update({slot.name: text})
                 except InvalidSlotValue:
-                    logging.info(text, slot.slot_type.values)
-                    return slot.prompt
-        return self.confirm_prompt
+                    logging.warn(f'{slot_value}, {text}')
+                    return is_fulfilled, slot_value, slot.prompt
+        else:
+            is_fulfilled = True
+        return is_fulfilled, slot_value, self.confirm_prompt
 
     def is_completed(self):
         return all([slot.is_completed() for slot in self.slots])
@@ -117,5 +114,5 @@ class DialogManager(object):
 
         return max_score, max_intent
 
-    def fulfill_intent(self, intent: Intent, text: str) -> str:
-        return intent.next_prompt(text)
+    def fulfill_intent(self, intent: Intent, slot_values, text: str):
+        return intent.next_prompt(slot_values, text)
