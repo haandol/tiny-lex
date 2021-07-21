@@ -1,0 +1,14 @@
+slot_types:
+  - name: flower_kinds
+    values:
+      - 장미
+      - 백합
+      - 할미꽃
+  - name: date
+    values:
+      - 오늘
+      - 내일
+  - name: time
+    values:
+      - 지금
+      - 이따

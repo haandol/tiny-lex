@@ -1,0 +1,12 @@
+slots:
+  - name: flower
+    values:
+      - name: kinds
+        type: flower_kinds
+        prompt: "무슨 종류의 꽃을 사고 싶으신가요?"
+      - name: pickup_date
+        type: date
+        prompt: "무슨 날짜에 꽃을 픽업하실 건가요?"
+      - name: pickup_time
+        type: time
+        prompt: "몇시에 꽃을 픽업하실 건가요?"
