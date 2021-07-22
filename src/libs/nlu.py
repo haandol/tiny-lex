@@ -12,7 +12,7 @@ class NLU(object):
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
             MODEL_NAME,
             bos_token='<s>', eos_token='</s>', unk_token='<unk>',
-            pad_token='<pad>', mask_token='<mask>') 
+            pad_token='<pad>', mask_token='<mask>')
         self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME)
         self.max_length = max_length
 

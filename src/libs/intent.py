@@ -28,7 +28,8 @@ class SlotType(object):
     @staticmethod
     def load_slot_types(path: str) -> dict:
         slot_types = {}
-        for config in yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)['slot_types']:
+        config_data = yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)
+        for config in config_data['slot_types']:
             name = config['name']
             values = config['values']
             slot_types[name] = SlotType(name, default_validator(values))
@@ -50,26 +51,32 @@ class Slot(object):
     @staticmethod
     def load_slots(slot_types: dict, path: str) -> dict:
         slots = {}
-        for config in yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)['slots']:
+        config_data = yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)
+        for config in config_data['slots']:
             intent_name = config['name']
             slots[intent_name] = []
             for slot_value in config['values']:
                 name = slot_value['name']
                 slot_type = slot_value['type']
                 prompt = slot_value['prompt']
-                slots[intent_name].append(Slot(name, prompt, slot_types[slot_type]))
+                slot = Slot(name, prompt, slot_types[slot_type])
+                slots[intent_name].append(slot)
         return slots
 
 
 class Intent(object):
-    def __init__(self, name: str, utterances: list, tokens, slots: list, confirm_prompt: str):
+    def __init__(self,
+                 name: str, utterances: list, tokens,
+                 slots: list, confirm_prompt: str):
         self.name = name
         self.utterances = utterances
         self.confirm_prompt = confirm_prompt
         self.slots = slots
         self.tokens = tokens
 
-    def next_prompt(self, user_slot_value: dict, text: str) -> tuple[bool, dict, str]:
+    def next_prompt(self,
+                    user_slot_value: dict,
+                    text: str) -> tuple[bool, dict, str]:
         is_fulfilled = False
         slot_value = user_slot_value.copy()
         for i, slot in enumerate(self.slots):
@@ -80,7 +87,8 @@ class Intent(object):
                     if i < len(self.slots) - 1:
                         return is_fulfilled, slot_value, self.slots[i+1].prompt
                 else:
-                    logging.warn(f'Invalid value for slot [{slot.name}]: {slot_value}, {text}')
+                    logging.warn(f'Invalid value for slot \
+[{slot.name}]: {slot_value}, {text}')
                     return is_fulfilled, slot_value, slot.prompt
         else:
             is_fulfilled = True
@@ -89,17 +97,19 @@ class Intent(object):
     def is_completed(self) -> bool:
         return all([slot.is_completed() for slot in self.slots])
 
-    def similarity_score(self, tokens: list) -> float: 
+    def similarity_score(self, tokens: list) -> float:
         return max([
             cosine_similarity(tokens, intent_tokens)[0][0]
             for intent_tokens in self.tokens
         ])
- 
 
     @staticmethod
-    def load_intents(slots, path: str, tokenizer: Callable[[str], list]) -> list:
+    def load_intents(slots: list[Slot],
+                     path: str,
+                     tokenizer: Callable[[str], list]) -> list:
         intents = []
-        for config in yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)['intents']:
+        config_data = yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)
+        for config in config_data['intents']:
             logging.info(config)
             name = config['name']
             utterances = config['utterances']

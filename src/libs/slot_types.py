@@ -2,13 +2,15 @@ import re
 from typing import Any
 from dateutil import parser
 
+
 def date_type_validator(v: Any) -> str:
     s = re.sub(r'[^\d-]', ' ', v)
     try:
         dt = parser.parse(s)
         return f'{dt.year}-{dt.month}-{dt.day}'
-    except:
+    except Exception:
         return None
+
 
 def time_type_validator(v: Any) -> str:
     s = re.sub(r'[^\d]', ' ', v)

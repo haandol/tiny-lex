@@ -3,7 +3,10 @@ from .intent import Intent
 
 
 class DialogManager(object):
-    def __init__(self, encoder: Callable[[str], list], intents: list[Intent], intent_threshold: float):
+    def __init__(self,
+                 encoder: Callable[[str], list],
+                 intents: list[Intent],
+                 intent_threshold: float):
         self.encoder = encoder
         self.intents = intents
         self.intent_threshold = intent_threshold
@@ -21,5 +24,8 @@ class DialogManager(object):
 
         return max_score, max_intent
 
-    def fulfill_intent(self, intent: Intent, slot_values: dict, text: str) -> tuple[bool, dict, str]:
+    def fulfill_intent(self,
+                       intent: Intent,
+                       slot_values: dict,
+                       text: str) -> tuple[bool, dict, str]:
         return intent.next_prompt(slot_values, text)

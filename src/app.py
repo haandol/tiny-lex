@@ -51,7 +51,7 @@ class Chatbot(object):
         logging.info(score, intent.name)
         self.user_intents[uid] = intent
         return intent
- 
+
     def chat(self, uid: str, text: str) -> str:
         print(f'[USER]: {text}')
         intent = self._get_user_intent(uid, text)
