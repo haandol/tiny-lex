@@ -1,10 +1,11 @@
 import os
-from .intent import Slot, SlotType, Intent
 from sklearn.metrics.pairwise import cosine_similarity
+from .intent import Slot, SlotType, Intent
+from .nlu import NLU
 
 
 class DialogManager(object):
-    def __init__(self, nlu, intent_threshold=0.6):
+    def __init__(self, nlu: NLU, intent_threshold: float = 0.6):
         self.nlu = nlu
         self.intent_threshold = intent_threshold
 
@@ -12,7 +13,7 @@ class DialogManager(object):
         slots = Slot.load_slots(slot_types, os.path.join(os.getcwd(), '..', 'config', 'slot.yml'))
         self.intents = Intent.load_intents(slots, os.path.join(os.getcwd(), '..', 'config', 'intent.yml'), self.nlu.generate_tokens)
 
-    def classify_intent(self, text):
+    def classify_intent(self, text: str) -> tuple[float, Intent]:
         tokens = self.nlu.generate_tokens(text)
 
         max_score = -9999
@@ -26,5 +27,5 @@ class DialogManager(object):
 
         return max_score, max_intent
 
-    def fulfill_intent(self, intent: Intent, slot_values, text: str):
+    def fulfill_intent(self, intent: Intent, slot_values: dict, text: str) -> tuple[bool, dict, str]:
         return intent.next_prompt(slot_values, text)

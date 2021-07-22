@@ -12,15 +12,15 @@ class Chatbot(object):
         self.user_intents = {}
         self.user_slot_values = {}
 
-    def _init_user_session(self, uid):
+    def _init_user_session(self, uid: str) -> None:
         self.user_intents[uid] = None
         self.user_slot_values[uid] = {}
 
-    def start(self, uid):
+    def start(self, uid: str) -> str:
         self._init_user_session(uid)
         return self.start_message
 
-    def _get_user_intent(self, uid, text) -> Intent:
+    def _get_user_intent(self, uid: str, text: str) -> Intent:
         intent = self.user_intents[uid]
         if intent:
             return intent
@@ -32,7 +32,7 @@ class Chatbot(object):
         self.user_intents[uid] = intent
         return intent
  
-    def chat(self, uid, text) -> str:
+    def chat(self, uid: str, text: str) -> str:
         intent = self._get_user_intent(uid, text)
         is_fulfilled, new_slot_values, prompt = self.dm.fulfill_intent(
             intent, self.user_slot_values[uid], text

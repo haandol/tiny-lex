@@ -8,7 +8,7 @@ MODEL_NAME = 'skt/kogpt2-base-v2'
 
 
 class NLU(object):
-    def __init__(self, max_length=64):
+    def __init__(self, max_length: int = 64):
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
             MODEL_NAME,
             bos_token='<s>', eos_token='</s>', unk_token='<unk>',
@@ -16,7 +16,7 @@ class NLU(object):
         self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME)
         self.max_length = max_length
 
-    def generate_tokens(self, text: str):
+    def generate_tokens(self, text: str) -> list:
         input_ids = self.tokenizer.encode(text)
         gen_ids = self.model.generate(
             torch.tensor([input_ids]),
@@ -28,6 +28,3 @@ class NLU(object):
             use_cache=True
         )
         return gen_ids.tolist()
-
-    def encode(self, text: str):
-        return self.tokenizer.encode(text)
