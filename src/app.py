@@ -1,13 +1,33 @@
+import os
 import logging
 from libs.dialog import DialogManager
-from libs.intent import Intent
+from libs.intent import Intent, Slot, SlotType
 from libs.nlu import NLU
+
+CONFIG_PATH = os.path.join(os.getcwd(), '..', 'config')
 
 
 class Chatbot(object):
     def __init__(self, start_message: str):
-        nlu = NLU(max_length=64)
-        self.dm = DialogManager(nlu=nlu)
+        self.nlu = NLU(max_length=64)
+        slot_types = SlotType.load_slot_types(
+            os.path.join(CONFIG_PATH, 'slot_type.yml')
+        )
+        slots = Slot.load_slots(
+            slot_types,
+            os.path.join(CONFIG_PATH, 'slot.yml')
+        )
+        intents = Intent.load_intents(
+            slots,
+            os.path.join(CONFIG_PATH, 'intent.yml'),
+            self.nlu.encode
+        )
+
+        self.dm = DialogManager(
+            encoder=self.nlu.encode,
+            intents=intents,
+            intent_threshold=0.6
+        )
         self.start_message = start_message
         self.user_intents = {}
         self.user_slot_values = {}

@@ -2,6 +2,7 @@ import io
 import yaml
 import logging
 from typing import Any, Callable
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 class SlotType(object):
@@ -69,6 +70,13 @@ class Intent(object):
 
     def is_completed(self) -> bool:
         return all([slot.is_completed() for slot in self.slots])
+
+    def similarity_score(self, tokens: list) -> float: 
+        return max([
+            cosine_similarity(tokens, intent_tokens)[0][0]
+            for intent_tokens in self.tokens
+        ])
+ 
 
     @staticmethod
     def load_intents(slots, path: str, tokenizer: Callable[[str], list]) -> list:

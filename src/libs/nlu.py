@@ -16,7 +16,7 @@ class NLU(object):
         self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME)
         self.max_length = max_length
 
-    def generate_tokens(self, text: str) -> list:
+    def encode(self, text: str) -> list:
         input_ids = self.tokenizer.encode(text)
         gen_ids = self.model.generate(
             torch.tensor([input_ids]),

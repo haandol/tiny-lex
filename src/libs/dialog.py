@@ -1,29 +1,23 @@
-import os
-from sklearn.metrics.pairwise import cosine_similarity
-from .intent import Slot, SlotType, Intent
-from .nlu import NLU
+from typing import Callable
+from .intent import Intent
 
 
 class DialogManager(object):
-    def __init__(self, nlu: NLU, intent_threshold: float = 0.6):
-        self.nlu = nlu
+    def __init__(self, encoder: Callable[[str], list], intents: list[Intent], intent_threshold: float):
+        self.encoder = encoder
+        self.intents = intents
         self.intent_threshold = intent_threshold
 
-        slot_types = SlotType.load_slot_types(os.path.join(os.getcwd(), '..', 'config', 'slot_type.yml'))
-        slots = Slot.load_slots(slot_types, os.path.join(os.getcwd(), '..', 'config', 'slot.yml'))
-        self.intents = Intent.load_intents(slots, os.path.join(os.getcwd(), '..', 'config', 'intent.yml'), self.nlu.generate_tokens)
-
     def classify_intent(self, text: str) -> tuple[float, Intent]:
-        tokens = self.nlu.generate_tokens(text)
+        tokens = self.encoder(text)
 
-        max_score = -9999
+        max_score = 0
         max_intent = None
         for intent in self.intents:
-            for intent_tokens in intent.tokens:
-                score = cosine_similarity(tokens, intent_tokens)[0][0]
-                if self.intent_threshold < score and max_score < score:
-                    max_score = score
-                    max_intent = intent
+            score = intent.similarity_score(tokens)
+            if self.intent_threshold < score and max_score < score:
+                max_score = score
+                max_intent = intent
 
         return max_score, max_intent
 
