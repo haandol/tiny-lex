@@ -3,12 +3,27 @@ import yaml
 import logging
 from typing import Any, Callable
 from sklearn.metrics.pairwise import cosine_similarity
+from .slot_types import date_type_validator, time_type_validator
+
+BUILTIN_SLOT_TYPES = {
+    'date': date_type_validator,
+    'time': time_type_validator,
+}
+
+
+def default_validator(values: list) -> Callable:
+    def validator(v: Any):
+        if v in values:
+            return v
+        else:
+            return None
+    return validator
 
 
 class SlotType(object):
-    def __init__(self, name: str, values: list):
+    def __init__(self, name: str, validate: Callable[[Any], bool]):
         self.name = name
-        self.values = values
+        self.validate = validate
 
     @staticmethod
     def load_slot_types(path: str) -> dict:
@@ -16,7 +31,10 @@ class SlotType(object):
         for config in yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)['slot_types']:
             name = config['name']
             values = config['values']
-            slot_types[name] = SlotType(name, values)
+            slot_types[name] = SlotType(name, default_validator(values))
+        # built-in slot types
+        for k, v in BUILTIN_SLOT_TYPES.items():
+            slot_types[k] = SlotType(k, v)
         return slot_types
 
 
@@ -26,10 +44,8 @@ class Slot(object):
         self.prompt = prompt
         self.slot_type = slot_type
 
-    def is_valid(self, v: Any) -> bool:
-        if v not in self.slot_type.values:
-            return False
-        return True
+    def validate(self, v: Any) -> Any:
+        return self.slot_type.validate(v)
 
     @staticmethod
     def load_slots(slot_types: dict, path: str) -> dict:
@@ -56,13 +72,15 @@ class Intent(object):
     def next_prompt(self, user_slot_value: dict, text: str) -> tuple[bool, dict, str]:
         is_fulfilled = False
         slot_value = user_slot_value.copy()
-        for slot in self.slots:
+        for i, slot in enumerate(self.slots):
             if slot.name not in slot_value:
-                logging.info(f'{slot_value}, {text}')
-                if slot.is_valid(text):
-                    slot_value.update({slot.name: text})
+                valid_value = slot.validate(text)
+                if valid_value:
+                    slot_value.update({slot.name: valid_value})
+                    if i < len(self.slots) - 1:
+                        return is_fulfilled, slot_value, self.slots[i+1].prompt
                 else:
-                    logging.warn(f'Invalid value for slot: {slot_value}, {text}')
+                    logging.warn(f'Invalid value for slot [{slot.name}]: {slot_value}, {text}')
                     return is_fulfilled, slot_value, slot.prompt
         else:
             is_fulfilled = True

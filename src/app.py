@@ -47,13 +47,16 @@ class Chatbot(object):
 
         score, intent = self.dm.classify_intent(text)
         if not intent:
-            return '처리할 수 없는 메시지 입니다.'
+            return None
         logging.info(score, intent.name)
         self.user_intents[uid] = intent
         return intent
  
     def chat(self, uid: str, text: str) -> str:
+        print(f'[USER]: {text}')
         intent = self._get_user_intent(uid, text)
+        if not intent:
+            return f'처리할 수 없는 메시지입니다: [{text}]'
         is_fulfilled, new_slot_values, prompt = self.dm.fulfill_intent(
             intent, self.user_slot_values[uid], text
         )
@@ -69,8 +72,8 @@ class Chatbot(object):
 if __name__ == '__main__':
     bot = Chatbot(start_message='안녕하세요, 꽃팔이 챗봇입니다.')
     uid = 'dongkyl'
-    print(bot.start(uid))
-    print(bot.chat(uid, '꽃을 사고 싶어'))
-    print(bot.chat(uid, '장미'))
-    print(bot.chat(uid, '오늘'))
-    print(bot.chat(uid, '지금'))
+    print(f"[BOT]: {bot.start(uid)}")
+    print(f"[BOT]: {bot.chat(uid, '꽃을 사고 싶어')}")
+    print(f"[BOT]: {bot.chat(uid, '장미')}")
+    print(f"[BOT]: {bot.chat(uid, '2021년 12월 6일')}")
+    print(f"[BOT]: {bot.chat(uid, '13시 40분')}")
