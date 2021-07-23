@@ -12,7 +12,8 @@ class NLU(object):
         self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
             MODEL_NAME,
             bos_token='<s>', eos_token='</s>', unk_token='<unk>',
-            pad_token='<pad>', mask_token='<mask>')
+            pad_token='<pad>', mask_token='<mask>',
+        )
         self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME)
         self.max_length = max_length
 
@@ -25,6 +26,6 @@ class NLU(object):
             eos_token_id=self.tokenizer.eos_token_id,
             pad_token_id=self.tokenizer.pad_token_id,
             bos_token_id=self.tokenizer.bos_token_id,
-            use_cache=True
+            use_cache=True,
         )
         return gen_ids.tolist()
