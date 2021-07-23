@@ -8,8 +8,7 @@ Tiny version of Amazon Lex for Korean chatbot prototype
 ```bash
 $ pip install -r requirements.txt
 
-$ cd src
-$ python app.py
+$ python -m "src.chatbot"
 
 INFO:root:{'name': 'flower', 'utterances': ['꽃을 사고 싶습니다', '꽃을 사고 싶다', '꽃 내놔', '꽃이 필요해', '플라워가 필요해', '플라워를 사고 싶다'], 'confirm_prompt': '좋습니다. {pickup_date} {pickup_time}에 {kinds} 꽃을 준비해두겠습니다.'}
 INFO:root:[BOT]: 안녕하세요, 꽃팔이 챗봇입니다.

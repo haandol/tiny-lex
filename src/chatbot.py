@@ -1,11 +1,11 @@
 import os
 import logging
-from libs.dialog import DialogManager
-from libs.intent import Intent, Slot, SlotType
-from libs.nlu import NLU
+from .libs.dialog import DialogManager
+from .libs.intent import Intent, Slot, SlotType
+from .libs.nlu import NLU
 
 logging.basicConfig(level=logging.INFO)
-CONFIG_PATH = os.path.join(os.getcwd(), '..', 'config')
+CONFIG_PATH = os.path.join(os.getcwd(), 'config')
 
 
 class Chatbot(object):
@@ -36,10 +36,6 @@ class Chatbot(object):
         self.user_intents[uid] = None
         self.user_slot_values[uid] = {}
 
-    def start(self, uid: str) -> str:
-        self._init_user_session(uid)
-        return self.start_message
-
     def _get_user_intent(self, uid: str, text: str) -> Intent:
         intent = self.user_intents[uid]
         if intent:
@@ -53,7 +49,10 @@ class Chatbot(object):
         return intent
 
     def chat(self, uid: str, text: str) -> str:
-        logging.info(f'[USER]: {text}')
+        logging.info(f'[USER][{uid}]: {text}')
+        if uid not in self.user_intents:
+            self._init_user_session(uid)
+
         intent = self._get_user_intent(uid, text)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
@@ -73,7 +72,6 @@ class Chatbot(object):
 if __name__ == '__main__':
     bot = Chatbot(start_message='안녕하세요, 꽃팔이 챗봇입니다.')
     uid = 'dongkyl'
-    logging.info(f"[BOT]: {bot.start(uid)}")
     logging.info(f"[BOT]: {bot.chat(uid, '꽃을 사고 싶어')}")
     logging.info(f"[BOT]: {bot.chat(uid, '장미')}")
     logging.info(f"[BOT]: {bot.chat(uid, '2021년 12월 6일')}")
