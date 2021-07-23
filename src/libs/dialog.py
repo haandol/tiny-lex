@@ -29,7 +29,7 @@ class DialogManager(object):
     def __init__(self,
                  encoder: Callable[[str], list],
                  intents: List[Intent]):
-        self.intent_classifier = IntentClassifier(encoder, threshold=0.6)
+        self.intent_classifier = IntentClassifier(encoder, threshold=0.8)
         self.intents = intents
 
     def classify_intent(self, text: str) -> Tuple[float, Intent]:
@@ -37,6 +37,6 @@ class DialogManager(object):
 
     def fulfill_intent(self,
                        intent: Intent,
-                       slot_values: dict,
+                       user_slot_values: dict,
                        text: str) -> Tuple[bool, dict, str]:
-        return intent.next_prompt(slot_values, text)
+        return intent.next_prompt(user_slot_values, text)

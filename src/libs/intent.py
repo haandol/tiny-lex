@@ -75,10 +75,10 @@ class Intent(object):
         self.tokens = tokens
 
     def next_prompt(self,
-                    user_slot_value: dict,
+                    user_slot_values: dict,
                     text: str) -> Tuple[bool, dict, str]:
         is_fulfilled = False
-        slot_value = user_slot_value.copy()
+        slot_value = {} if not user_slot_values else user_slot_values.copy()
         for i, slot in enumerate(self.slots):
             if slot.name not in slot_value:
                 valid_value = slot.validate(text)
@@ -87,7 +87,7 @@ class Intent(object):
                     if i < len(self.slots) - 1:
                         return is_fulfilled, slot_value, self.slots[i+1].prompt
                 else:
-                    logging.warn(f'Invalid value for slot \
+                    logging.warning(f'Invalid value for slot \
 [{slot.name}]: {slot_value}, {text}')
                     return is_fulfilled, slot_value, slot.prompt
         else:

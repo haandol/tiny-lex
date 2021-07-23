@@ -17,7 +17,8 @@ class NLU(object):
             pad_token='<pad>', mask_token='<mask>',
             cache_dir=CACHE_DIR,
         )
-        self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME, cache_dir=CACHE_DIR)
+        self.model = GPT2LMHeadModel.from_pretrained(MODEL_NAME,
+                                                     cache_dir=CACHE_DIR)
         self.max_length = max_length
 
     def encode(self, text: str) -> list:

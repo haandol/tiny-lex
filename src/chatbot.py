@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Tuple
 from .libs.dialog import DialogManager
 from .libs.intent import Intent, Slot, SlotType
 from .libs.nlu import NLU
@@ -30,49 +31,67 @@ class Chatbot(object):
         )
         self.start_message = start_message
         self.user_intents = {}
-        self.user_slot_values = {}
 
     def _init_user_session(self, uid: str) -> None:
         self.user_intents[uid] = None
-        self.user_slot_values[uid] = {}
 
-    def _get_user_intent(self, uid: str, text: str) -> Intent:
-        intent = self.user_intents[uid]
-        if intent:
-            return intent
-
+    def _get_current_intent(self, uid: str, text: str) -> Intent:
         score, intent = self.dm.classify_intent(text)
-        if not intent:
-            return None
-        logging.info(f'{score}, {intent.name}')
-        self.user_intents[uid] = intent
+        if intent:
+            logging.info(f'{score}, {intent.name}')
+            self.user_intents[uid] = intent
+        else:
+            logging.warning(f'no intent for {uid} - {text}')
+            intent = self.user_intents[uid]
         return intent
 
-    def chat(self, uid: str, text: str) -> str:
+    def chat(self,
+             uid: str,
+             text: str,
+             user_slot_values: dict = None) -> Tuple[str, dict]:
         logging.info(f'[USER][{uid}]: {text}')
+
         if uid not in self.user_intents:
+            logging.info(f'init user intent for {uid}')
             self._init_user_session(uid)
 
-        intent = self._get_user_intent(uid, text)
+        intent = self._get_current_intent(uid, text)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
 
         is_fulfilled, new_slot_values, prompt = self.dm.fulfill_intent(
-            intent, self.user_slot_values[uid], text
+            intent, user_slot_values, text
         )
-        self.user_slot_values[uid].update(new_slot_values)
 
-        response = prompt.format(**self.user_slot_values[uid])
+        if user_slot_values:
+            user_slot_values.update(new_slot_values)
+        else:
+            user_slot_values = new_slot_values
+
+        response = prompt.format(**user_slot_values)
         if is_fulfilled:
             self._init_user_session(uid)
 
-        return response
+        return response, user_slot_values
 
 
 if __name__ == '__main__':
     bot = Chatbot(start_message='안녕하세요, 꽃팔이 챗봇입니다.')
     uid = 'dongkyl'
-    logging.info(f"[BOT]: {bot.chat(uid, '꽃을 사고 싶어')}")
-    logging.info(f"[BOT]: {bot.chat(uid, '장미')}")
-    logging.info(f"[BOT]: {bot.chat(uid, '2021년 12월 6일')}")
-    logging.info(f"[BOT]: {bot.chat(uid, '13시 40분')}")
+    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어')
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '장미', slot_values)
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '2021년 12월 6일', slot_values)
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '13시 50분', slot_values)
+    logging.info(f"[BOT]: {resp}")
+
+    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어')
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '장미', slot_values)
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어', slot_values)
+    logging.info(f"[BOT]: {resp}")
+    resp, slot_values = bot.chat(uid, '13시 50분', slot_values)
+    logging.info(f"[BOT]: {resp}")
