@@ -1,7 +1,7 @@
 import io
 import yaml
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, List, Tuple
 from sklearn.metrics.pairwise import cosine_similarity
 from .slot_types import date_type_validator, time_type_validator
 
@@ -76,7 +76,7 @@ class Intent(object):
 
     def next_prompt(self,
                     user_slot_value: dict,
-                    text: str) -> tuple[bool, dict, str]:
+                    text: str) -> Tuple[bool, dict, str]:
         is_fulfilled = False
         slot_value = user_slot_value.copy()
         for i, slot in enumerate(self.slots):
@@ -104,7 +104,7 @@ class Intent(object):
         ])
 
     @staticmethod
-    def load_intents(slots: list[Slot],
+    def load_intents(slots: List[Slot],
                      path: str,
                      tokenizer: Callable[[str], list]) -> list:
         intents = []

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List, Tuple
 from .intent import Intent
 
 
@@ -10,8 +10,8 @@ class IntentClassifier(object):
         self.threshold = threshold
 
     def classify(self,
-                 intents: list[Intent],
-                 text: str) -> tuple[float, Intent]:
+                 intents: List[Intent],
+                 text: str) -> Tuple[float, Intent]:
         tokens = self.encoder(text)
 
         max_score = 0
@@ -28,15 +28,15 @@ class IntentClassifier(object):
 class DialogManager(object):
     def __init__(self,
                  encoder: Callable[[str], list],
-                 intents: list[Intent]):
+                 intents: List[Intent]):
         self.intent_classifier = IntentClassifier(encoder, threshold=0.6)
         self.intents = intents
 
-    def classify_intent(self, text: str) -> tuple[float, Intent]:
+    def classify_intent(self, text: str) -> Tuple[float, Intent]:
         return self.intent_classifier.classify(self.intents, text)
 
     def fulfill_intent(self,
                        intent: Intent,
                        slot_values: dict,
-                       text: str) -> tuple[bool, dict, str]:
+                       text: str) -> Tuple[bool, dict, str]:
         return intent.next_prompt(slot_values, text)
