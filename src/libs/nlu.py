@@ -36,5 +36,8 @@ class NLU(object):
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(level=logging.INFO)
+
     nlu = NLU()
-    print(nlu.encode('꽃꽃이 하는 남자입니다'))
+    logging.info(nlu.encode('꽃꽃이 하는 남자입니다'))

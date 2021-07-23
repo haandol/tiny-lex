@@ -11,7 +11,7 @@ bot = None
 
 
 def handler(event, context):
-    print(json.dumps(event))
+    logging.info(json.dumps(event))
 
     global bot
     if not bot:
