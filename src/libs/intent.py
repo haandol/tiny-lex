@@ -66,8 +66,11 @@ class Slot(object):
 
 class Intent(object):
     def __init__(self,
-                 name: str, utterances: list, tokens,
-                 slots: list, confirm_prompt: str):
+                 name: str,
+                 utterances: list,
+                 tokens: list,
+                 slots: list,
+                 confirm_prompt: str):
         self.name = name
         self.utterances = utterances
         self.confirm_prompt = confirm_prompt
@@ -102,12 +105,15 @@ class Intent(object):
             cosine_similarity(tokens, intent_tokens)[0][0]
             for intent_tokens in self.tokens
         ])
+    
+    def __str__(self):
+        return f'Intent {self.name}'
 
     @staticmethod
     def load_intents(slots: List[Slot],
                      path: str,
-                     tokenizer: Callable[[str], list]) -> list:
-        intents = []
+                     tokenizer: Callable[[str], list]) -> dict:
+        intents = {}
         config_data = yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)
         for config in config_data['intents']:
             logging.info(config)
@@ -118,5 +124,5 @@ class Intent(object):
             tokens = [tokenizer(utterance) for utterance in utterances]
             intent = Intent(name, utterances=utterances, tokens=tokens,
                             slots=slots[name], confirm_prompt=confirm_prompt)
-            intents.append(intent)
+            intents[name] = intent
         return intents

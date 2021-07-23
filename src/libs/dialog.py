@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple
+from typing import Callable, Tuple
 from .intent import Intent
 
 
@@ -10,13 +10,13 @@ class IntentClassifier(object):
         self.threshold = threshold
 
     def classify(self,
-                 intents: List[Intent],
+                 intents: dict,
                  text: str) -> Tuple[float, Intent]:
         tokens = self.encoder(text)
 
         max_score = 0
         max_intent = None
-        for intent in intents:
+        for intent in intents.values():
             score = intent.similarity_score(tokens)
             if self.threshold < score and max_score < score:
                 max_score = score
@@ -28,9 +28,12 @@ class IntentClassifier(object):
 class DialogManager(object):
     def __init__(self,
                  encoder: Callable[[str], list],
-                 intents: List[Intent]):
+                 intents: dict):
         self.intent_classifier = IntentClassifier(encoder, threshold=0.8)
         self.intents = intents
+
+    def get_intent_by_name(self, name: str) -> Intent:
+        return self.intents.get(name, None)
 
     def classify_intent(self, text: str) -> Tuple[float, Intent]:
         return self.intent_classifier.classify(self.intents, text)

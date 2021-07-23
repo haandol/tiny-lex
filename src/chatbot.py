@@ -30,32 +30,26 @@ class Chatbot(object):
             intents=intents,
         )
         self.start_message = start_message
-        self.user_intents = {}
 
-    def _init_user_session(self, uid: str) -> None:
-        self.user_intents[uid] = None
-
-    def _get_current_intent(self, uid: str, text: str) -> Intent:
-        score, intent = self.dm.classify_intent(text)
-        if intent:
-            logging.info(f'{score}, {intent.name}')
-            self.user_intents[uid] = intent
+    def _get_current_intent(self,
+                            text: str,
+                            intent_name: str) -> Intent:
+        if intent_name:
+            intent = self.dm.get_intent_by_name(intent_name)
+            logging.info(f'user specified intent: {intent}')
         else:
-            logging.warning(f'no intent for {uid} - {text}')
-            intent = self.user_intents[uid]
+            score, intent = self.dm.classify_intent(text)
+            logging.info(f'{score}, {intent} for {text}')
         return intent
 
     def chat(self,
              uid: str,
              text: str,
-             user_slot_values: dict = None) -> Tuple[str, dict]:
+             intent_name: str = None,
+             user_slot_values: dict = None) -> Tuple[str, str, dict]:
         logging.info(f'[USER][{uid}]: {text}')
 
-        if uid not in self.user_intents:
-            logging.info(f'init user intent for {uid}')
-            self._init_user_session(uid)
-
-        intent = self._get_current_intent(uid, text)
+        intent = self._get_current_intent(text, intent_name)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
 
@@ -70,28 +64,29 @@ class Chatbot(object):
 
         response = prompt.format(**user_slot_values)
         if is_fulfilled:
-            self._init_user_session(uid)
+            # TODO: confirm or reject
+            pass
 
-        return response, user_slot_values
+        return response, intent.name, user_slot_values
 
 
 if __name__ == '__main__':
     bot = Chatbot(start_message='안녕하세요, 꽃팔이 챗봇입니다.')
     uid = 'dongkyl'
-    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어')
+    resp, intent_name, slot_values = bot.chat(uid, '꽃을 사고 싶어')
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '장미', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '장미', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '2021년 12월 6일', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '2021년 12월 6일', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '13시 50분', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '13시 50분', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
 
-    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어')
+    resp, intent_name, slot_values = bot.chat(uid, '꽃을 사고 싶어')
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '장미', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '장미', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '꽃을 사고 싶어', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '꽃을 사고 싶어', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
-    resp, slot_values = bot.chat(uid, '13시 50분', slot_values)
+    resp, intent_name, slot_values = bot.chat(uid, '13시 50분', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
