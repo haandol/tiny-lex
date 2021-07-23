@@ -33,14 +33,18 @@ class Chatbot(object):
 
     def _get_current_intent(self,
                             text: str,
-                            intent_name: str) -> Intent:
-        if intent_name:
+                            intent_name: str) -> Tuple[bool, Intent]:
+        is_new = False
+        score, intent = self.dm.classify_intent(text)
+        logging.info(f'{score}, {intent} for {text}')
+
+        if intent:
+            is_new = True
+            return is_new, intent
+        else:
             intent = self.dm.get_intent_by_name(intent_name)
             logging.info(f'user specified intent: {intent}')
-        else:
-            score, intent = self.dm.classify_intent(text)
-            logging.info(f'{score}, {intent} for {text}')
-        return intent
+        return is_new, intent
 
     def chat(self,
              uid: str,
@@ -49,9 +53,13 @@ class Chatbot(object):
              user_slot_values: dict = None) -> Tuple[str, str, dict]:
         logging.info(f'[USER][{uid}]: {text}')
 
-        intent = self._get_current_intent(text, intent_name)
+        is_new, intent = self._get_current_intent(text, intent_name)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
+
+        # if new intent is identified, start over fulfilling slots
+        if is_new:
+            user_slot_values = None
 
         is_fulfilled, new_slot_values, prompt = self.dm.fulfill_intent(
             intent, user_slot_values, text
