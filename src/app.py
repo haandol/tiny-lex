@@ -4,6 +4,7 @@ from libs.dialog import DialogManager
 from libs.intent import Intent, Slot, SlotType
 from libs.nlu import NLU
 
+logging.basicConfig(level=logging.INFO)
 CONFIG_PATH = os.path.join(os.getcwd(), '..', 'config')
 
 
@@ -47,12 +48,12 @@ class Chatbot(object):
         score, intent = self.dm.classify_intent(text)
         if not intent:
             return None
-        logging.info(score, intent.name)
+        logging.info(f'{score}, {intent.name}')
         self.user_intents[uid] = intent
         return intent
 
     def chat(self, uid: str, text: str) -> str:
-        print(f'[USER]: {text}')
+        logging.info(f'[USER]: {text}')
         intent = self._get_user_intent(uid, text)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
@@ -61,21 +62,19 @@ class Chatbot(object):
             intent, self.user_slot_values[uid], text
         )
         self.user_slot_values[uid].update(new_slot_values)
-        logging.info(text, new_slot_values, self.user_slot_values[uid])
 
         response = prompt.format(**self.user_slot_values[uid])
         if is_fulfilled:
             self._init_user_session(uid)
 
-        logging.info(is_fulfilled, new_slot_values, prompt)
         return response
 
 
 if __name__ == '__main__':
     bot = Chatbot(start_message='안녕하세요, 꽃팔이 챗봇입니다.')
     uid = 'dongkyl'
-    print(f"[BOT]: {bot.start(uid)}")
-    print(f"[BOT]: {bot.chat(uid, '꽃을 사고 싶어')}")
-    print(f"[BOT]: {bot.chat(uid, '장미')}")
-    print(f"[BOT]: {bot.chat(uid, '2021년 12월 6일')}")
-    print(f"[BOT]: {bot.chat(uid, '13시 40분')}")
+    logging.info(f"[BOT]: {bot.start(uid)}")
+    logging.info(f"[BOT]: {bot.chat(uid, '꽃을 사고 싶어')}")
+    logging.info(f"[BOT]: {bot.chat(uid, '장미')}")
+    logging.info(f"[BOT]: {bot.chat(uid, '2021년 12월 6일')}")
+    logging.info(f"[BOT]: {bot.chat(uid, '13시 40분')}")
