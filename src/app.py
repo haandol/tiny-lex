@@ -26,7 +26,6 @@ class Chatbot(object):
         self.dm = DialogManager(
             encoder=self.nlu.encode,
             intents=intents,
-            intent_threshold=0.6
         )
         self.start_message = start_message
         self.user_intents = {}
@@ -57,14 +56,17 @@ class Chatbot(object):
         intent = self._get_user_intent(uid, text)
         if not intent:
             return f'처리할 수 없는 메시지입니다: [{text}]'
+
         is_fulfilled, new_slot_values, prompt = self.dm.fulfill_intent(
             intent, self.user_slot_values[uid], text
         )
         self.user_slot_values[uid].update(new_slot_values)
         logging.info(text, new_slot_values, self.user_slot_values[uid])
+
         response = prompt.format(**self.user_slot_values[uid])
         if is_fulfilled:
             self._init_user_session(uid)
+
         logging.info(is_fulfilled, new_slot_values, prompt)
         return response
 
