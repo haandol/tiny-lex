@@ -8,6 +8,7 @@ from .slot_types import (
     confirm_type_validator
 )
 
+UTTERANCE_LIMIT = 10
 CONFIRM_SLOT_NAME = 'confirm'
 BUILTIN_SLOT_TYPES = {
     'date': date_type_validator,
@@ -58,7 +59,7 @@ class Slot(object):
         slots = {}
         config_data = yaml.load(io.open(path, 'r'), Loader=yaml.FullLoader)
         for config in config_data['slots']:
-            intent_name = config['name']
+            intent_name = config['intent_name']
             slots[intent_name] = []
             for slot_value in config['values']:
                 name = slot_value['name']
@@ -75,7 +76,7 @@ class Intent(object):
                  utterances: list,
                  tokens: list,
                  slots: list,
-                 fulfill_prompt: str = None,
+                 fulfill_prompt: str,
                  reject_prompt: str = None):
         self.name = name
         self.utterances = utterances
@@ -95,7 +96,7 @@ class Intent(object):
                 valid_value = slot.validate(text)
                 if valid_value:
                     slot_value.update({slot.name: valid_value})
-                    if i < len(self.slots) - 1:
+                    if i < len(self.slots)-1:
                         return is_fulfilled, slot_value, self.slots[i+1].prompt
                 elif valid_value == False and slot.name == CONFIRM_SLOT_NAME:
                     # special slot
@@ -107,7 +108,7 @@ class Intent(object):
         else:
             is_fulfilled = True
 
-        is_confirmed = slot_value.get(CONFIRM_SLOT_NAME, False)
+        is_confirmed = slot_value.get(CONFIRM_SLOT_NAME, is_fulfilled)
         return (
             is_fulfilled,
             slot_value,
@@ -135,7 +136,7 @@ class Intent(object):
         for config in config_data['intents']:
             logging.info(config)
             name = config['name']
-            utterances = config['utterances']
+            utterances = config['utterances'][:UTTERANCE_LIMIT]
             fulfill_prompt = config['fulfill_prompt']
             reject_prompt = config['reject_prompt']
 
