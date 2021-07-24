@@ -26,3 +26,15 @@ def time_type_validator(v: Any) -> str:
         return f'{hour}:{minutes}'
     else:
         return None
+
+
+def confirm_type_validator(v: Any) -> str:
+    # replace with simple pos-neg NL model
+    pos_presets = ['ok', 'yes', '응', '예', '네', '좋아', '좋아요', '그래']
+    neg_presets = ['no', '아니', '아니오', '싫어', '싫어요', '취소']
+    if v in pos_presets:
+        return True
+    elif v in neg_presets:
+        return False
+    else:
+        return None

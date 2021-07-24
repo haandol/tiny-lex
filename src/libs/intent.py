@@ -3,11 +3,16 @@ import yaml
 import logging
 from typing import Any, Callable, List, Tuple
 from sklearn.metrics.pairwise import cosine_similarity
-from .slot_types import date_type_validator, time_type_validator
+from .slot_types import (
+    date_type_validator, time_type_validator,
+    confirm_type_validator
+)
 
+CONFIRM_SLOT_NAME = 'confirm'
 BUILTIN_SLOT_TYPES = {
     'date': date_type_validator,
     'time': time_type_validator,
+    CONFIRM_SLOT_NAME: confirm_type_validator,
 }
 
 
@@ -21,9 +26,9 @@ def default_validator(values: list) -> Callable:
 
 
 class SlotType(object):
-    def __init__(self, name: str, validate: Callable[[Any], bool]):
+    def __init__(self, name: str, validator: Callable[[Any], bool]):
         self.name = name
-        self.validate = validate
+        self.validate = validator
 
     @staticmethod
     def load_slot_types(path: str) -> dict:
@@ -70,17 +75,20 @@ class Intent(object):
                  utterances: list,
                  tokens: list,
                  slots: list,
-                 confirm_prompt: str):
+                 fulfill_prompt: str = None,
+                 reject_prompt: str = None):
         self.name = name
         self.utterances = utterances
-        self.confirm_prompt = confirm_prompt
-        self.slots = slots
         self.tokens = tokens
+        self.slots = slots
+        self.fulfill_prompt = fulfill_prompt
+        self.reject_prompt = reject_prompt
 
     def next_prompt(self,
                     user_slot_values: dict,
                     text: str) -> Tuple[bool, dict, str]:
         is_fulfilled = False
+
         slot_value = {} if not user_slot_values else user_slot_values.copy()
         for i, slot in enumerate(self.slots):
             if slot.name not in slot_value:
@@ -89,13 +97,22 @@ class Intent(object):
                     slot_value.update({slot.name: valid_value})
                     if i < len(self.slots) - 1:
                         return is_fulfilled, slot_value, self.slots[i+1].prompt
+                elif valid_value == False and slot.name == CONFIRM_SLOT_NAME:
+                    # special slot
+                    slot_value.update({slot.name: valid_value})
                 else:
                     logging.warning(f'Invalid value for slot \
-[{slot.name}]: {slot_value}, {text}')
+    [{slot.name}]: {slot_value}, {text}')
                     return is_fulfilled, slot_value, slot.prompt
         else:
             is_fulfilled = True
-        return is_fulfilled, slot_value, self.confirm_prompt
+
+        is_confirmed = slot_value.get(CONFIRM_SLOT_NAME, False)
+        return (
+            is_fulfilled,
+            slot_value,
+            self.fulfill_prompt if is_confirmed else self.reject_prompt
+        )
 
     def is_completed(self) -> bool:
         return all([slot.is_completed() for slot in self.slots])
@@ -119,10 +136,15 @@ class Intent(object):
             logging.info(config)
             name = config['name']
             utterances = config['utterances']
-            confirm_prompt = config['confirm_prompt']
+            fulfill_prompt = config['fulfill_prompt']
+            reject_prompt = config['reject_prompt']
 
             tokens = [tokenizer(utterance) for utterance in utterances]
-            intent = Intent(name, utterances=utterances, tokens=tokens,
-                            slots=slots[name], confirm_prompt=confirm_prompt)
+            intent = Intent(name,
+                            utterances=utterances,
+                            tokens=tokens,
+                            slots=slots[name],
+                            fulfill_prompt=fulfill_prompt,
+                            reject_prompt=reject_prompt)
             intents[name] = intent
         return intents

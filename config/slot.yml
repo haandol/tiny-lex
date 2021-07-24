@@ -10,3 +10,6 @@ slots:
       - name: pickup_time
         type: time
         prompt: "{pickup_date} 몇시 몇분에 {kinds} 을(를) 픽업하실 건가요?"
+      - name: confirm
+        type: confirm
+        prompt: "좋습니다. {pickup_date} {pickup_time}에 {kinds} 꽃을 준비해두면 될까요?"

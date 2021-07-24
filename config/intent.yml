@@ -7,4 +7,5 @@ intents:
       - 꽃이 필요해
       - 플라워가 필요해
       - 플라워를 사고 싶다
-    confirm_prompt: '좋습니다. {pickup_date} {pickup_time}에 {kinds} 꽃을 준비해두겠습니다.'
+    fulfill_prompt: '감사합니다. 주문이 완료되었습니다.'
+    reject_prompt: '아쉽군요. 꽃 주문을 취소하겠습니다.'

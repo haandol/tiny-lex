@@ -89,6 +89,10 @@ if __name__ == '__main__':
     logging.info(f"[BOT]: {resp}")
     resp, intent_name, slot_values = bot.chat(uid, '13시 50분', intent_name, slot_values)
     logging.info(f"[BOT]: {resp}")
+    resp, intent_name, slot_values = bot.chat(uid, '으악 실수', intent_name, slot_values)
+    logging.info(f"[BOT]: {resp}")
+    resp, intent_name, slot_values = bot.chat(uid, '아니', intent_name, slot_values)
+    logging.info(f"[BOT]: {resp}")
 
     resp, intent_name, slot_values = bot.chat(uid, '꽃을 사고 싶어')
     logging.info(f"[BOT]: {resp}")
